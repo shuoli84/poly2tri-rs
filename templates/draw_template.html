@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>--- TODO ---</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/fontawesome.min.css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- Leave those next 4 lines if you care about users using IE8 -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style>
+        .frame {
+            width: 800px;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .show {
+            display: block;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 15px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+    </style>
+
+
+</head>
+
+{% let frame_count = frames.len() %}
+
+<body>
+    <p>
+        Total {{ frame_count }} steps
+    </p>
+    <p>
+        legalize steps: {{legalized_count}}
+    </p>
+    <p>
+        rotate count: {{rotate_count}}
+    </p>
+    <p>
+        point count: {{point_count}}
+    </p>
+    <p>
+        edge count: {{edge_count}}
+    </p>
+
+    <div class="slidecontainer">
+        <input type="range" min="1" max="{{ frame_count }}" value="1" class="slider" id="myRange" autofocus>
+    </div>
+
+    <div id="frames">
+        {% for frame in frames %}
+        <div id="frame-{{ loop.index }}" class="hide">
+            <div class="frame">
+                {{ frame|safe }}
+            </div>
+
+            <div class="message">
+                {% for message in frame_messages[loop.index0] %}
+                <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Including Bootstrap JS (with its jQuery dependency) so that dynamic components work -->
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"
+        integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+        var slider = document.getElementById("myRange");
+
+        function show_slider_selected_svg() {
+            // clear all show
+            let get = document.querySelectorAll('.show');
+            get.forEach(element => {
+                element.classList.remove("show")
+            });
+
+            var selected_value = slider.value;
+            let frame_element = document.getElementById(`frame-${selected_value}`);
+            frame_element.classList.add("show");
+        }
+        // call for first time
+        show_slider_selected_svg();
+
+        slider.oninput = function () {
+            show_slider_selected_svg();
+        }
+    </script>
+</body>
+
+</html>

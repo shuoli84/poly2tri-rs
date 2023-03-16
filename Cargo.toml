@@ -1,0 +1,27 @@
+[package]
+name = "poly2tri-rs"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+thiserror = "1.0"
+
+[dev-dependencies]
+rand = "0.8"
+criterion = { version = "0.4", features = ["html_reports"] }
+clap = { version = "4.1.8", features = ["derive"] }
+svg = "0.13.0"
+askama = "0.12"
+
+[[bench]]
+name = "bench"
+harness = false
+
+[features]
+default = []
+af_btree = []
+
+[profile.release]
+debug = true
