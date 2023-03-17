@@ -2,8 +2,8 @@
 name = "poly2tri-rs"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "An idiomatic and fast Constrained Delaunay Triangulation library"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 thiserror = "1.0"
