@@ -1,9 +1,11 @@
+/// This example is like a visual debugger, it can draw each step
 use clap::Parser;
 use poly2tri_rs::{
     loader::{Loader, PlainFileLoader},
-    Context, Edge, Observer, Point, Sweeper, SweeperBuilder, TriangleId,
+    Context, Edge, Observer, Point, Sweeper, TriangleId,
 };
-use rand::Rng;
+use utils::draw_svg;
+mod utils;
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
@@ -12,6 +14,9 @@ struct Args {
     /// Name of the person to greet
     #[arg(short, long)]
     path: Option<std::path::PathBuf>,
+
+    #[arg(short, long)]
+    output: Option<std::path::PathBuf>,
 
     #[arg(long)]
     point: bool,
@@ -32,59 +37,23 @@ struct Args {
     frame_count: usize,
 }
 
-fn try_load_from_file(path: &std::path::PathBuf) -> Option<Vec<Point>> {
-    let mut f = std::fs::File::options().read(true).open(path).ok()?;
-    let mut value = "".to_string();
-    std::io::Read::read_to_string(&mut f, &mut value).unwrap();
-    let mut points = vec![];
-    for line in value.lines() {
-        let mut iter = line.split_whitespace();
-        let x = iter.next().unwrap();
-        let y = iter.next().unwrap();
-
-        let x = x.parse::<f64>().unwrap();
-        let y = y.parse::<f64>().unwrap();
-        points.push(Point::new(x, y));
-    }
-
-    Some(points)
-}
-
 fn main() {
     let args = Args::parse();
 
-    let sweeper_builder = if args.test {
-        let points = if let Some(path) = args.path.as_ref() {
-            try_load_from_file(path).unwrap()
-        } else {
-            let mut points = Vec::<Point>::new();
-            for _ in 0..100 {
-                let x: f64 = rand::thread_rng().gen_range(0.0..800.);
-                let y: f64 = rand::thread_rng().gen_range(0.0..800.);
-                points.push(Point::new(x, y));
-            }
-            points
-        };
-
-        SweeperBuilder::new(vec![
-            Point::new(-10., -10.),
-            Point::new(810., -10.),
-            Point::new(810., 810.),
-            Point::new(-10., 810.),
-        ])
-        .add_steiner_points(points)
-        .add_hole(vec![
-            Point::new(400., 400.),
-            Point::new(600., 400.),
-            Point::new(600., 600.),
-            Point::new(400., 600.),
-        ])
-    } else {
+    let sweeper_builder = {
         let mut file_loader = PlainFileLoader::default();
         file_loader
             .load(args.path.as_ref().unwrap().as_os_str().to_str().unwrap())
             .unwrap()
     };
+
+    if let Some(output_path) = args.output {
+        // draw result instead of debug
+
+        draw_svg(sweeper_builder.build().triangulate(), output_path);
+
+        return;
+    }
 
     if args.bench_count == 1 {
         let mut observer = DrawObserver::new(&args);
@@ -94,7 +63,7 @@ fn main() {
             .triangulate_with_observer(&mut observer);
         observer.save();
 
-        // we measure time with dummy observer
+        // measure time with dummy observer
         let start = std::time::Instant::now();
         let count = 1000;
         for _ in 0..count {
@@ -102,7 +71,7 @@ fn main() {
         }
         let end = std::time::Instant::now();
         let duration = end.duration_since(start) / count;
-        println!("{:?} elapsed", duration);
+        println!("{:?} per draw", duration);
     } else {
         for _ in 0..args.bench_count {
             let _ = sweeper_builder.clone().build().triangulate();

@@ -19,9 +19,5 @@ askama = "0.12"
 name = "bench"
 harness = false
 
-[features]
-default = []
-af_btree = []
-
 [profile.release]
 debug = true
