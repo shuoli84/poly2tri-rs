@@ -238,6 +238,9 @@ impl Sweeper {
                 } else {
                     break;
                 }
+            } else {
+                // no valid triangle found, just break
+                break;
             }
         }
 
