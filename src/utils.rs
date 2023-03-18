@@ -34,9 +34,11 @@ impl Orientation {
 pub fn orient_2d(a: Point, b: Point, c: Point) -> Orientation {
     debug_assert!(!a.eq(&b) && !a.eq(&c) && !b.eq(&c), "orient_2d point same");
 
-    let detleft = (a.x - c.x) * (b.y - c.y);
-    let detright = (a.y - c.y) * (b.x - c.x);
-    let val = detleft - detright;
+    let val = robust::orient2d(
+        robust::Coord { x: a.x, y: a.y },
+        robust::Coord { x: b.x, y: b.y },
+        robust::Coord { x: c.x, y: c.y },
+    );
 
     if val > 0. {
         Orientation::CCW
@@ -50,40 +52,12 @@ pub fn orient_2d(a: Point, b: Point, c: Point) -> Orientation {
 /// check whether pd is in circle defined by pa, pb, pc
 /// requirements: pa is known to be opposite side with pd.
 pub fn in_circle(pa: Point, pb: Point, pc: Point, pd: Point) -> bool {
-    let adx = pa.x - pd.x;
-    let ady = pa.y - pd.y;
-    let bdx = pb.x - pd.x;
-    let bdy = pb.y - pd.y;
-
-    let adxbdy = adx * bdy;
-    let bdxady = bdx * ady;
-    let oabd = adxbdy - bdxady;
-
-    if oabd <= 0. {
-        return false;
-    }
-
-    let cdx = pc.x - pd.x;
-    let cdy = pc.y - pd.y;
-
-    let cdxady = cdx * ady;
-    let adxcdy = adx * cdy;
-    let ocad = cdxady - adxcdy;
-
-    if ocad <= 0. {
-        return false;
-    }
-
-    let bdxcdy = bdx * cdy;
-    let cdxbdy = cdx * bdy;
-
-    let alift = adx * adx + ady * ady;
-    let blift = bdx * bdx + bdy * bdy;
-    let clift = cdx * cdx + cdy * cdy;
-
-    let det = alift * (bdxcdy - cdxbdy) + blift * ocad + clift * oabd;
-
-    det > 0.
+    robust::incircle(
+        robust::Coord { x: pa.x, y: pa.y },
+        robust::Coord { x: pb.x, y: pb.y },
+        robust::Coord { x: pc.x, y: pc.y },
+        robust::Coord { x: pd.x, y: pd.y },
+    ) > 0.
 }
 
 pub fn in_scan_area(a: Point, b: Point, c: Point, d: Point) -> bool {

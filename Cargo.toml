@@ -7,6 +7,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 thiserror = "1.0"
+robust = "0.2.3"
 
 [dev-dependencies]
 rand = "0.8"
