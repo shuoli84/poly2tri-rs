@@ -792,9 +792,9 @@ impl Sweeper {
         node_id: NodeId,
         context: &mut Context,
         observer: &mut impl Observer,
-    ) {
+    ) -> Option<()> {
         if node_id.point().x >= edge.p.x {
-            return;
+            return None;
         }
 
         let node = context.advancing_front.get_node_with_id(node_id).unwrap();
@@ -807,11 +807,13 @@ impl Sweeper {
             Self::fill_right_concave_edge_event(edge, node_id, context, observer);
         } else {
             // convex
-            Self::fill_right_convex_edge_event(edge, node_id, context, observer);
+            Self::fill_right_convex_edge_event(edge, node_id, context, observer)?;
 
             // retry this one
             Self::fill_right_below_edge_event(edge, node_id, context, observer);
         }
+
+        Some(())
     }
 
     /// recursively fill concave nodes
@@ -849,15 +851,17 @@ impl Sweeper {
         }
     }
 
+    // if nothing changed, returns None
+    #[must_use]
     fn fill_right_convex_edge_event(
         edge: &ConstrainedEdge,
         node_id: NodeId,
         context: &mut Context,
         observer: &mut impl Observer,
-    ) {
+    ) -> Option<()> {
         let next_node = context.advancing_front.locate_next_node(node_id).unwrap();
         let next_next_node = next_node.next().unwrap();
-        let next_next_next_node = next_next_node.next().unwrap();
+        let next_next_next_node = next_next_node.next()?;
         // next concave or convex?
         if orient_2d(
             next_node.point(),
@@ -878,11 +882,13 @@ impl Sweeper {
                     next_node.get_node_id(),
                     context,
                     observer,
-                );
+                )?;
             } else {
                 // Above
             }
         }
+
+        Some(())
     }
 
     fn fill_left_above_edge_event(
@@ -911,7 +917,7 @@ impl Sweeper {
         node_id: NodeId,
         context: &mut Context,
         observer: &mut impl Observer,
-    ) {
+    ) -> Option<()> {
         if node_id.point().x > edge.p.x {
             let prev_node = context.advancing_front.locate_prev_node(node_id).unwrap();
             let prev_prev_node = prev_node.prev().unwrap();
@@ -919,24 +925,29 @@ impl Sweeper {
                 Self::fill_left_concave_edge_event(edge, node_id, context, observer);
             } else {
                 // convex
-                Self::fill_left_convex_edge_event(edge, node_id, context, observer);
+                Self::fill_left_convex_edge_event(edge, node_id, context, observer)?;
 
                 // retry this one
                 Self::fill_left_below_edge_event(edge, node_id, context, observer);
             }
+            Some(())
+        } else {
+            None
         }
     }
 
+    // if nothing changed, returns None
+    #[must_use]
     fn fill_left_convex_edge_event(
         edge: &ConstrainedEdge,
         node_id: NodeId,
         context: &mut Context,
         observer: &mut impl Observer,
-    ) {
+    ) -> Option<()> {
         // next concave or convex?
         let prev_node = context.advancing_front.locate_prev_node(node_id).unwrap();
         let prev_prev_node = prev_node.prev().unwrap();
-        let prev_prev_prev_node = prev_prev_node.prev().unwrap();
+        let prev_prev_prev_node = prev_prev_node.prev()?;
 
         if orient_2d(
             prev_node.point(),
@@ -952,11 +963,17 @@ impl Sweeper {
             // next above or below edge?
             if orient_2d(edge.q, prev_prev_node.point(), edge.p).is_cw() {
                 // below
-                Self::fill_left_convex_edge_event(edge, prev_node.get_node_id(), context, observer);
+                Self::fill_left_convex_edge_event(
+                    edge,
+                    prev_node.get_node_id(),
+                    context,
+                    observer,
+                )?;
             } else {
                 // above
             }
         }
+        Some(())
     }
 
     fn fill_left_concave_edge_event(
