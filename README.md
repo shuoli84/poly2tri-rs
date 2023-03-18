@@ -2,6 +2,20 @@
 
 An idiomatic and fast(not just because the language) rust porting for `poly2tri` cpp project. It calculates CDT (Constrained Delaunay Triangulation) on a polygon.
 
+# Install
+
+Add following to cargo.toml
+```toml
+[dependencies]
+poly2tri-rs = "0.1"
+```
+
+Or
+
+```bash
+cargo add poly2tri-rs
+```
+
 # Features
 
 * Multiple hole and steiner points
