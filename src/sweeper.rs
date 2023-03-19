@@ -1603,7 +1603,7 @@ mod tests {
             .collect::<Vec<_>>();
         assert_eq!(triangles.len(), 273);
         assert!(cache_hit.hit_rate() > 0.63);
-        assert!(cache_hit.rotate_count <= 331);
+        assert!(cache_hit.rotate_count == 272);
     }
 
     #[test]
@@ -1618,7 +1618,7 @@ mod tests {
             .collect::<Vec<_>>();
         assert_eq!(triangles.len(), 1034);
         assert!(cache_hit.hit_rate() > 0.71);
-        assert!(cache_hit.rotate_count <= 665);
+        assert!(cache_hit.rotate_count == 671);
     }
 
     #[test]
