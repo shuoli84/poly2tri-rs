@@ -94,6 +94,21 @@ impl Angle {
         Angle { dy: y, dx: x }
     }
 
+    /// Check angle between 0 and 90, all exclusive
+    pub fn between_0_to_90_degree(&self) -> bool {
+        // * `x = 0`, `y = 0`: `0`
+        // * `x >= 0`: `arctan(y/x)` -> `[-pi/2, pi/2]`
+        // * `y >= 0`: `arctan(y/x) + pi` -> `(pi/2, pi]`
+        // * `y < 0`: `arctan(y/x) - pi` -> `(-pi, -pi/2)`
+        if self.dx == 0. && self.dy == 0. {
+            true
+        } else if self.dx > 0. {
+            self.dy > 0.
+        } else {
+            false
+        }
+    }
+
     /// whether the angle exceeds PI / 2
     pub fn exceeds_90_degree(&self) -> bool {
         // * `x = 0`, `y = 0`: `0`
@@ -161,16 +176,19 @@ mod tests {
     #[test]
     fn test_angle() {
         let angle = Angle::new(Point::new(0., 0.), Point::new(1., 0.), Point::new(1., 1.));
-        assert!(!dbg!(angle).exceeds_90_degree());
+        assert!(!angle.exceeds_90_degree());
         assert!(!angle.is_negative());
+        assert!(angle.between_0_to_90_degree());
 
         let angle = Angle::new(Point::new(0., 0.), Point::new(0.1, 1.), Point::new(1., 0.));
         assert!(!dbg!(angle).exceeds_90_degree());
         assert!(angle.is_negative());
+        assert!(!angle.between_0_to_90_degree());
 
-        let angle = Angle::new(Point::new(0., 0.), Point::new(0., -1.), Point::new(1., 0.));
+        let angle = Angle::new(Point::new(0., 0.), Point::new(0.1, -1.), Point::new(1., 0.));
         assert!(!angle.exceeds_90_degree());
         assert!(!angle.is_negative());
+        assert!(angle.between_0_to_90_degree());
 
         let angle = Angle::new(
             Point::new(0., 0.),
@@ -179,6 +197,7 @@ mod tests {
         );
         assert!(angle.exceeds_90_degree());
         assert!(!angle.is_negative());
+        assert!(!angle.between_0_to_90_degree());
 
         let angle = Angle::new(
             Point::new(0., 0.),
@@ -187,13 +206,15 @@ mod tests {
         );
         assert!(angle.is_negative());
         assert!(!angle.exceeds_90_degree());
+        assert!(!angle.between_0_to_90_degree());
 
         let angle = Angle::new(
             Point::new(0., 0.),
             Point::new(1.0, 0.),
             Point::new(-1., 0.1),
         );
-        assert!(!dbg!(angle).is_negative());
+        assert!(!angle.is_negative());
         assert!(angle.exceeds_90_degree());
+        assert!(!angle.between_0_to_90_degree());
     }
 }

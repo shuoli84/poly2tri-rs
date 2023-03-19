@@ -2,7 +2,7 @@ use crate::advancing_front::{AdvancingFront, NodeId, NodeRef};
 use crate::points::{Points, PointsBuilder};
 use crate::triangles::TriangleId;
 use crate::triangles::TriangleStore;
-use crate::utils::{in_circle, in_scan_area, orient_2d, Orientation};
+use crate::utils::{in_circle, in_scan_area, orient_2d, Angle, Orientation};
 use crate::{shape::*, Context, PointId, Triangle};
 
 /// Observer for sweeper, used to monitor how sweeper works, quite useful
@@ -627,10 +627,10 @@ impl Sweeper {
     }
 
     fn should_fill(node: &NodeRef) -> bool {
-        let next_node = node.next().unwrap();
+        let next = node.next().unwrap();
         let prev_node = node.prev().unwrap();
 
-        let angle = crate::utils::Angle::new(node.point(), next_node.point(), prev_node.point());
+        let angle = crate::utils::Angle::new(node.point(), next.point(), prev_node.point());
 
         if angle.is_negative() {
             // negative means next -> node -> prev is cw, then it is not a hole
@@ -640,6 +640,20 @@ impl Sweeper {
             // otherwise we generate many bad shaped triangles
             // that needs rotated later
             return false;
+        }
+
+        if let Some(next_next) = next.next() {
+            if Angle::new(node.point(), next_next.point(), prev_node.point())
+                .between_0_to_90_degree()
+            {
+                return false;
+            }
+        }
+
+        if let Some(prev_prev) = prev_node.prev() {
+            if Angle::new(node.point(), next.point(), prev_prev.point()).between_0_to_90_degree() {
+                return false;
+            }
         }
 
         true
