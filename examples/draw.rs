@@ -156,7 +156,7 @@ impl DrawObserver {
 }
 
 impl Observer for DrawObserver {
-    fn point_event(&mut self, point_id: poly2tri_rs::PointId, context: &Context) {
+    fn exit_point_event(&mut self, point_id: poly2tri_rs::PointId, context: &Context) {
         self.point_count += 1;
         if !self.point {
             return;
