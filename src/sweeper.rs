@@ -586,7 +586,7 @@ impl Sweeper {
             while let Some(next_node) = context.advancing_front.locate_next_node(node_id) {
                 if next_node.next().is_some() {
                     // if HoleAngle exceeds 90 degrees then break
-                    if Self::large_hole_dont_fill(&next_node) {
+                    if Self::should_fill(&next_node) {
                         break;
                     }
                     let next_node_id = next_node.get_node_id();
@@ -608,7 +608,7 @@ impl Sweeper {
             while let Some(prev_node) = context.advancing_front.locate_prev_node(node_id) {
                 if prev_node.prev().is_some() {
                     // if HoleAngle exceeds 90 degrees then break
-                    if Self::large_hole_dont_fill(&prev_node) {
+                    if Self::should_fill(&prev_node) {
                         break;
                     }
 
@@ -626,17 +626,20 @@ impl Sweeper {
         }
     }
 
-    fn large_hole_dont_fill(node: &NodeRef) -> bool {
+    fn should_fill(node: &NodeRef) -> bool {
         let next_node = node.next().unwrap();
         let prev_node = node.prev().unwrap();
 
         let angle = crate::utils::Angle::new(node.point(), next_node.point(), prev_node.point());
 
-        if !angle.is_negative() && !angle.exceeds_90_degree() {
-            return false;
-        }
         if angle.is_negative() {
+            // negative means next -> node -> prev is cw, then it is not a hole
             return true;
+        } else if !angle.exceeds_90_degree() {
+            // we only fill holes with angle less than PI/2
+            // otherwise we generate many bad shaped triangles
+            // that needs rotated later
+            return false;
         }
 
         true
