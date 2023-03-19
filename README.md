@@ -30,12 +30,10 @@ Timing at the time of writing on my m1 mbp:
 
 |  example     |  poly2tri-rs  |  poly2tri (cpp) |  point count |
 | --------     |  ------------ |  -------------- |  ----------- |
-|  bird        |   0.12ms      |    0.17ms       |  275         |
-|  debug       |   0.1ms       |    0.14ms       |  200         |
-|  nazca_heron |   0.82ms      |    0.55ms       |  1036        |
-|  nazca_monkey |  0.89ms      |    0.76ms       |  1204        |
-
-I think both libraries are fast enough. Take nazca_heron as an example, there are 1000 points, generated around 2000 triangles in the process, around 7000 rotation fix, all finished under 1ms on one core.
+|  bird        |   0.08ms      |    0.17ms       |  275         |
+|  debug       |   0.06ms       |    0.14ms       |  200         |
+|  nazca_heron |   0.4ms      |    0.55ms       |  1036        |
+|  nazca_monkey |  0.52ms      |    0.76ms       |  1204        |
 
 # Limitations
 
