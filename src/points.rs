@@ -50,15 +50,6 @@ impl PointsBuilder {
         point_id
     }
 
-    /// Add all `points`
-    pub fn add_steiner_points(&mut self, points: impl IntoIterator<Item = Point>) {
-        self.points
-            .extend(points.into_iter().map(|p| PointWithEdge {
-                point: p,
-                edges: PointEdges::None,
-            }));
-    }
-
     pub(crate) fn get_point_mut(&mut self, point_id: PointId) -> Option<&mut PointWithEdge> {
         self.points.get_mut(point_id.as_usize())
     }

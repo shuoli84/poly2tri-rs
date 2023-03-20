@@ -434,7 +434,7 @@ impl DrawObserver {
             }
         };
 
-        let illegal_pairs = Sweeper::illegal_triangles(context);
+        let illegal_pairs = Sweeper::<()>::illegal_triangles(context);
         for (from_tid, to_tid) in illegal_pairs {
             let from_t = from_tid.get(&context.triangles);
             let to_t = to_tid.get(&context.triangles);

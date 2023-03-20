@@ -3,7 +3,7 @@ use crate::points::{Points, PointsBuilder};
 use crate::triangles::TriangleId;
 use crate::triangles::TriangleStore;
 use crate::utils::{in_circle, in_scan_area, orient_2d, Angle, Orientation};
-use crate::{shape::*, Context, Float, PointId, Triangle};
+use crate::{shape::*, AsPoint, Context, Float, PointId, Triangle};
 
 /// Observer for sweeper, used to monitor how sweeper works, quite useful
 /// for visual debugging when things goes wrong. Check example's draw.
@@ -71,42 +71,67 @@ impl Observer for () {}
 /// ```
 
 #[derive(Clone)]
-pub struct SweeperBuilder {
+pub struct SweeperBuilder<PD = ()> {
     points_builder: PointsBuilder,
+    data: Vec<PD>,
 }
 
-impl SweeperBuilder {
+impl<PD: Copy + Clone> SweeperBuilder<PD> {
     /// Create a new Builder with polyline
     /// There should be only one polyline, and multiple holes and steiner points supported
-    pub fn new(polyline: Vec<Point>) -> Self {
+    pub fn new<P: AsPoint<Data = PD>>(polyline: impl IntoIterator<Item = P>) -> Self {
+        let (polyline, data): (Vec<_>, Vec<_>) =
+            polyline.into_iter().map(|p| (p.point(), p.data())).unzip();
+
         let mut points_builder = PointsBuilder::with_capacity(polyline.len());
         parse_polyline(polyline, &mut points_builder);
 
-        Self { points_builder }
+        Self {
+            points_builder,
+            data,
+        }
     }
 
     /// Add a single sparse `Point`, there is no edge attached to it
     /// NOTE: if the point locates outside of polyline, then it has no
     /// effect on the final result
-    pub fn add_steiner_point(mut self, point: Point) -> Self {
-        self.points_builder.add_steiner_point(point);
+    pub fn add_steiner_point(mut self, point: impl AsPoint<Data = PD>) -> Self {
+        self.points_builder.add_steiner_point(point.point());
+        self.data.push(point.data());
         self
     }
 
     /// Add multiple [`Point`], batch version for `Self::add_point`
-    pub fn add_steiner_points(mut self, points: impl IntoIterator<Item = Point>) -> Self {
-        let _ = self.points_builder.add_steiner_points(points);
+    pub fn add_steiner_points<P: AsPoint<Data = PD>>(
+        mut self,
+        points: impl IntoIterator<Item = P>,
+    ) -> Self {
+        for p in points.into_iter() {
+            self.points_builder.add_steiner_point(p.point());
+            self.data.push(p.data());
+        }
         self
     }
 
     /// Add a hole defined by polyline.
-    pub fn add_hole(mut self, polyline: Vec<Point>) -> Self {
+    pub fn add_hole<P: AsPoint<Data = PD>>(
+        mut self,
+        polyline: impl IntoIterator<Item = P>,
+    ) -> Self {
+        let (polyline, data): (Vec<_>, Vec<_>) =
+            polyline.into_iter().map(|p| (p.point(), p.data())).unzip();
+
         parse_polyline(polyline, &mut self.points_builder);
+        self.data.extend(data);
+
         self
     }
 
     /// Add holes
-    pub fn add_holes(mut self, holes: impl IntoIterator<Item = Vec<Point>>) -> Self {
+    pub fn add_holes<P: AsPoint<Data = PD>>(
+        mut self,
+        holes: impl IntoIterator<Item = impl IntoIterator<Item = P>>,
+    ) -> Self {
         for polyline in holes.into_iter() {
             self = self.add_hole(polyline);
         }
@@ -114,22 +139,28 @@ impl SweeperBuilder {
     }
 
     /// build the sweeper
-    pub fn build(self) -> Sweeper {
+    pub fn build(self) -> Sweeper<PD> {
         let points = self.points_builder.build();
-        Sweeper { points }
+        Sweeper {
+            points,
+            data: self.data,
+        }
     }
 }
 
 /// Main interface, user should grab a new Sweeper by [`SweeperBuilder::build`]
 #[derive(Clone)]
-pub struct Sweeper {
+pub struct Sweeper<PD> {
     points: Points,
+    data: Vec<PD>,
 }
 
 /// The result of triangulate
-pub struct Triangles {
+pub struct Triangles<PD> {
     /// points store, it includes all points, including ones in hole
     points: Points,
+    /// point data
+    data: Vec<PD>,
     /// including all triangles, including ones in hole
     triangles: TriangleStore,
     /// final result `TriangleId`s
@@ -139,11 +170,16 @@ pub struct Triangles {
     next: usize,
 }
 
-impl Triangles {
+impl<PD> Triangles<PD> {
     /// iter all points. Note: not all points is in valid triangle, if the point
-    /// is outside or in hole, then it still able to iter.
+    /// is outside or in hole, then it still reachable here.
     pub fn iter_point(&self) -> impl Iterator<Item = &Point> {
         self.points.iter_without_fake().map(|(_, p, _)| p)
+    }
+
+    /// get slice for Point Data
+    pub fn data(&self) -> &[PD] {
+        &self.data
     }
 
     /// Get indices. Each three indices construct an triangle
@@ -165,7 +201,7 @@ impl Triangles {
     }
 }
 
-impl Iterator for Triangles {
+impl<PD> Iterator for Triangles<PD> {
     type Item = Triangle;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -190,14 +226,14 @@ impl Iterator for Triangles {
     }
 }
 
-impl Sweeper {
+impl<PD> Sweeper<PD> {
     /// Run trianglate with dummy observer
-    pub fn triangulate(self) -> Triangles {
+    pub fn triangulate(self) -> Triangles<PD> {
         self.triangulate_with_observer(&mut ())
     }
 
     /// Run triangulate with observer
-    pub fn triangulate_with_observer(self, observer: &mut impl Observer) -> Triangles {
+    pub fn triangulate_with_observer(self, observer: &mut impl Observer) -> Triangles<PD> {
         let mut triangles = TriangleStore::with_capacity(self.points.len() * 3);
 
         let initial_triangle = triangles.insert(InnerTriangle::new(
@@ -226,6 +262,7 @@ impl Sweeper {
 
         Triangles {
             points: self.points,
+            data: self.data,
             triangles,
             result,
 
@@ -234,7 +271,7 @@ impl Sweeper {
     }
 }
 
-impl Sweeper {
+impl<PD> Sweeper<PD> {
     fn sweep_points(context: &mut Context, observer: &mut impl Observer) {
         for (point_id, point, edges) in context.points.iter_point_by_y(1) {
             observer.enter_point_event(point_id, context);
@@ -314,7 +351,7 @@ impl Sweeper {
 // print detailed steps, like what changes this going to address.
 
 /// Point event related methods
-impl Sweeper {
+impl<PD> Sweeper<PD> {
     fn point_event(
         point_id: PointId,
         point: Point,
@@ -724,7 +761,7 @@ impl ConstrainedEdge {
 }
 
 /// EdgeEvent related methods
-impl Sweeper {
+impl<PD> Sweeper<PD> {
     fn edge_event(edge: Edge, q: Point, context: &mut Context, observer: &mut impl Observer) {
         let p = edge.p.get(&context.points);
 
@@ -1159,7 +1196,7 @@ impl Sweeper {
 }
 
 /// flip edge related methods
-impl Sweeper {
+impl<PD> Sweeper<PD> {
     fn flip_edge_event(
         ep: PointId,
         eq: PointId,
@@ -1355,7 +1392,7 @@ impl Basin {
 }
 
 /// Basin related methods
-impl Sweeper {
+impl<PD> Sweeper<PD> {
     fn basin_angle_satisfy(node_id: NodeId, context: &Context) -> bool {
         const TAN_3_4_PI: Float = -1.;
         let Some(next) = context.advancing_front.locate_next_node(node_id) else { return false };
@@ -1491,7 +1528,7 @@ impl Sweeper {
     }
 }
 
-impl Sweeper {
+impl<PD> Sweeper<PD> {
     pub fn verify_triangles(context: &Context) -> bool {
         Self::illegal_triangles(context).is_empty()
     }
