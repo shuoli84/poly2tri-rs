@@ -17,7 +17,7 @@ impl PointId {
         self.0 as usize
     }
 
-    /// Get the inner value as usize
+    /// Get the inner value as u32
     pub fn as_u32(&self) -> u32 {
         self.0 as u32
     }
