@@ -22,5 +22,8 @@ askama = "0.12"
 name = "bench"
 harness = false
 
+[features]
+f32 = []
+
 [profile.release]
 debug = true

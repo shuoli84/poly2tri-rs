@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use poly2tri_rs::{Point, SweeperBuilder};
+use poly2tri_rs::{Float, Point, SweeperBuilder};
 
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("bench_100", |b| {
@@ -50,8 +50,8 @@ fn parse_points(serialized: &str) -> Vec<Point> {
         let mut iter = line.split_whitespace();
         let x = iter.next().unwrap();
         let y = iter.next().unwrap();
-        let x = x.parse::<f64>().unwrap();
-        let y = y.parse::<f64>().unwrap();
+        let x = x.parse::<Float>().unwrap();
+        let y = y.parse::<Float>().unwrap();
         points.push(Point::new(x, y));
     }
     points

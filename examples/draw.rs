@@ -2,7 +2,7 @@
 use clap::Parser;
 use poly2tri_rs::{
     loader::{Loader, PlainFileLoader},
-    Context, Edge, Observer, Point, Sweeper, TriangleId,
+    Context, Edge, Float, Observer, Point, Sweeper, TriangleId,
 };
 use utils::draw_svg;
 mod utils;
@@ -226,10 +226,10 @@ impl DrawObserver {
 
         #[derive(Debug, Clone, Copy)]
         struct MapRect {
-            x: f64,
-            y: f64,
-            w: f64,
-            h: f64,
+            x: Float,
+            y: Float,
+            w: Float,
+            h: Float,
         }
 
         // map rect with y flipped, svg's coordinate with origin at left-top
@@ -240,17 +240,17 @@ impl DrawObserver {
         }
 
         impl Map {
-            fn map_point(&self, x: f64, y: f64) -> (f64, f64) {
+            fn map_point(&self, x: Float, y: Float) -> (Float, Float) {
                 let x = (x - self.from.x) / self.from.w * self.to.w + self.to.x;
                 let y = self.to.h - (y - self.from.y) / self.from.h * self.to.h + self.to.y;
                 (x, y)
             }
         }
 
-        let mut min_x = f64::MAX;
-        let mut max_x = f64::MIN;
-        let mut min_y = f64::MAX;
-        let mut max_y = f64::MIN;
+        let mut min_x = Float::MAX;
+        let mut max_x = Float::MIN;
+        let mut min_y = Float::MAX;
+        let mut max_y = Float::MIN;
         for p in context.points.iter().map(|(_, p, _)| p) {
             min_x = min_x.min(p.x);
             max_x = max_x.max(p.x);
@@ -460,7 +460,7 @@ impl DrawObserver {
     }
 }
 
-fn line(p: (f64, f64), q: (f64, f64), color: &str) -> svg::node::element::Line {
+fn line(p: (Float, Float), q: (Float, Float), color: &str) -> svg::node::element::Line {
     svg::node::element::Line::new()
         .set("class", "edge")
         .set("stroke", to_color(color))
@@ -470,7 +470,7 @@ fn line(p: (f64, f64), q: (f64, f64), color: &str) -> svg::node::element::Line {
         .set("y2", q.1)
 }
 
-fn text(content: impl Into<String>, p: (f64, f64)) -> svg::node::element::Text {
+fn text(content: impl Into<String>, p: (Float, Float)) -> svg::node::element::Text {
     svg::node::element::Text::new()
         .add(svg::node::Text::new(content))
         .set("x", p.0)
@@ -478,9 +478,9 @@ fn text(content: impl Into<String>, p: (f64, f64)) -> svg::node::element::Text {
 }
 
 fn triangle(
-    p0: (f64, f64),
-    p1: (f64, f64),
-    p2: (f64, f64),
+    p0: (Float, Float),
+    p1: (Float, Float),
+    p2: (Float, Float),
     border_color: &str,
     fill_color: &str,
 ) -> svg::node::element::Path {
@@ -496,13 +496,13 @@ fn triangle(
         .set("fill", to_color(fill_color))
 }
 
-fn distance(l: (f64, f64), r: (f64, f64)) -> f64 {
+fn distance(l: (Float, Float), r: (Float, Float)) -> Float {
     ((r.0 - l.0) * (r.0 - l.0) + (r.1 - l.1) * (r.1 - l.1)).sqrt()
 }
 
 fn circle(
-    c: (f64, f64),
-    r: f64,
+    c: (Float, Float),
+    r: Float,
     stroke_color: &str,
     fill_color: &str,
 ) -> svg::node::element::Circle {
@@ -529,7 +529,7 @@ fn to_color(name: &str) -> String {
 }
 
 /// both check and returns the det value
-fn in_circle(pa: Point, pb: Point, pc: Point, pd: Point) -> (bool, f64) {
+fn in_circle(pa: Point, pb: Point, pc: Point, pd: Point) -> (bool, Float) {
     let adx = pa.x - pd.x;
     let ady = pa.y - pd.y;
     let bdx = pb.x - pd.x;

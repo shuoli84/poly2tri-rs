@@ -1,4 +1,4 @@
-use crate::{triangles::TriangleId, PointId};
+use crate::{triangles::TriangleId, Float, PointId};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Edge {
@@ -31,8 +31,8 @@ impl Edge {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Point {
-    pub x: f64,
-    pub y: f64,
+    pub x: Float,
+    pub y: Float,
 }
 
 impl Default for Point {
@@ -42,7 +42,7 @@ impl Default for Point {
 }
 
 impl Point {
-    pub fn new(x: f64, y: f64) -> Self {
+    pub fn new(x: Float, y: Float) -> Self {
         Self { x, y }
     }
 

@@ -1,4 +1,4 @@
-use crate::shape::Point;
+use crate::{shape::Point, Float};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Orientation {
@@ -62,12 +62,12 @@ pub fn in_circle(pa: Point, pb: Point, pc: Point, pd: Point) -> bool {
 
 pub fn in_scan_area(a: Point, b: Point, c: Point, d: Point) -> bool {
     let oadb = (a.x - b.x) * (d.y - b.y) - (d.x - b.x) * (a.y - b.y);
-    if oadb >= -f64::EPSILON {
+    if oadb >= -Float::EPSILON {
         return false;
     }
 
     let oadc = (a.x - c.x) * (d.y - c.y) - (d.x - c.x) * (a.y - c.y);
-    if oadc <= f64::EPSILON {
+    if oadc <= Float::EPSILON {
         return false;
     }
 
@@ -76,8 +76,8 @@ pub fn in_scan_area(a: Point, b: Point, c: Point, d: Point) -> bool {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Angle {
-    dy: f64,
-    dx: f64,
+    dy: Float,
+    dx: Float,
 }
 
 impl Angle {

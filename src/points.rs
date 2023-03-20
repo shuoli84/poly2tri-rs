@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use crate::shape::Point;
+use crate::{shape::Point, Float};
 
 /// Type alias to the underlying type for PointId.
 /// Despite of maximum number supported, type size also affect performance
@@ -118,10 +118,10 @@ pub struct Points {
 
 impl Points {
     pub fn new(mut points: Vec<PointWithEdge>) -> Self {
-        let mut xmax = f64::MIN;
-        let mut xmin = f64::MAX;
-        let mut ymax = f64::MIN;
-        let mut ymin = f64::MAX;
+        let mut xmax = Float::MIN;
+        let mut xmin = Float::MAX;
+        let mut ymax = Float::MIN;
+        let mut ymin = Float::MAX;
 
         let mut unsorted_points = points
             .iter()

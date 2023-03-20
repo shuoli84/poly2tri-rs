@@ -3,7 +3,7 @@ use crate::points::{Points, PointsBuilder};
 use crate::triangles::TriangleId;
 use crate::triangles::TriangleStore;
 use crate::utils::{in_circle, in_scan_area, orient_2d, Angle, Orientation};
-use crate::{shape::*, Context, PointId, Triangle};
+use crate::{shape::*, Context, Float, PointId, Triangle};
 
 /// Observer for sweeper, used to monitor how sweeper works, quite useful
 /// for visual debugging when things goes wrong. Check example's draw.
@@ -313,7 +313,7 @@ impl Sweeper {
 
         // in middle case, the node's x should be less than point'x
         // in left case, they are same.
-        if point.x <= node_point.x + f64::EPSILON {
+        if point.x <= node_point.x + Float::EPSILON {
             Self::fill_one(node_id, context, observer);
         }
 
@@ -1304,7 +1304,7 @@ impl Sweeper {
 struct Basin {
     left: Point,
     right: Point,
-    width: f64,
+    width: Float,
     left_higher: bool,
 }
 
@@ -1331,7 +1331,7 @@ impl Basin {
 /// Basin related methods
 impl Sweeper {
     fn basin_angle_satisfy(node_id: NodeId, context: &Context) -> bool {
-        const TAN_3_4_PI: f64 = -1.;
+        const TAN_3_4_PI: Float = -1.;
         let Some(next) = context.advancing_front.locate_next_node(node_id) else { return false };
         let Some(next_next) = next.next() else { return false };
 
@@ -1628,8 +1628,8 @@ mod tests {
             None => {
                 let mut points = Vec::<Point>::new();
                 for _ in 0..100 {
-                    let x: f64 = rand::thread_rng().gen_range(0.0..800.);
-                    let y: f64 = rand::thread_rng().gen_range(0.0..800.);
+                    let x: Float = rand::thread_rng().gen_range(0.0..800.);
+                    let y: Float = rand::thread_rng().gen_range(0.0..800.);
                     points.push(Point::new(x, y));
                 }
                 save_to_file(&points, test_path);
@@ -1667,8 +1667,8 @@ mod tests {
             let x = iter.next().unwrap();
             let y = iter.next().unwrap();
 
-            let x = x.parse::<f64>().unwrap();
-            let y = y.parse::<f64>().unwrap();
+            let x = x.parse::<Float>().unwrap();
+            let y = y.parse::<Float>().unwrap();
             points.push(Point::new(x, y));
         }
 
