@@ -139,6 +139,32 @@ pub struct Triangles {
     next: usize,
 }
 
+impl Triangles {
+    /// iter all points. Note: not all points is in valid triangle, if the point
+    /// is outside or in hole, then it still able to iter.
+    pub fn iter_point(&self) -> impl Iterator<Item = &Point> {
+        self.points.iter_without_fake().map(|(_, p, _)| p)
+    }
+
+    /// Get indices. Each three indices construct an triangle
+    /// Point's order is the same as input, also you can iter point
+    /// with `iter_point` to construct a new point buffer.
+    pub fn triangle_indices(&self) -> Vec<u32> {
+        let mut result = Vec::with_capacity(self.result.len() * 3);
+
+        for triangle_id in self.result.iter() {
+            let t = triangle_id.get(&self.triangles);
+            result.extend_from_slice(&[
+                t.points[0].as_u32(),
+                t.points[1].as_u32(),
+                t.points[2].as_u32(),
+            ]);
+        }
+
+        result
+    }
+}
+
 impl Iterator for Triangles {
     type Item = Triangle;
 
@@ -1529,7 +1555,7 @@ mod tests {
     use super::*;
 
     #[derive(Default)]
-    struct CacheHitOb {
+    struct UnitTestObservor {
         hit_count: u64,
         mis_count: u64,
         rotate_count: u64,
@@ -1537,13 +1563,13 @@ mod tests {
         legalize_count: u64,
     }
 
-    impl CacheHitOb {
+    impl UnitTestObservor {
         pub fn hit_rate(&self) -> f64 {
             self.hit_count as f64 / (self.hit_count + self.mis_count) as f64
         }
     }
 
-    impl Observer for CacheHitOb {
+    impl Observer for UnitTestObservor {
         fn legalized(&mut self, _triangel_id: TriangleId, _context: &Context) {
             self.legalize_count += 1;
         }
@@ -1596,7 +1622,7 @@ mod tests {
         let file_path = "test_data/bird.dat";
         let points = try_load_from_file(file_path).unwrap();
 
-        let mut cache_hit = CacheHitOb::default();
+        let mut cache_hit = UnitTestObservor::default();
         let sweeper = SweeperBuilder::new(points).build();
         let triangles = sweeper
             .triangulate_with_observer(&mut cache_hit)
@@ -1607,12 +1633,26 @@ mod tests {
     }
 
     #[test]
+    fn test_triangles_indices() {
+        let file_path = "test_data/bird.dat";
+        let points = try_load_from_file(file_path).unwrap();
+        let points_len = points.len();
+
+        let sweeper = SweeperBuilder::new(points).build();
+        let triangles = sweeper.triangulate();
+        let indices = triangles.triangle_indices();
+
+        assert_eq!(indices.len(), 273 * 3);
+        assert_eq!(triangles.iter_point().count(), points_len);
+    }
+
+    #[test]
     fn test_nazca_heron() {
         let file_path = "test_data/nazca_heron.dat";
         let points = try_load_from_file(file_path).unwrap();
 
         let sweeper = SweeperBuilder::new(points).build();
-        let mut cache_hit = CacheHitOb::default();
+        let mut cache_hit = UnitTestObservor::default();
         let triangles = sweeper
             .triangulate_with_observer(&mut cache_hit)
             .collect::<Vec<_>>();
