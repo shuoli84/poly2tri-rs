@@ -49,6 +49,11 @@ impl PointsBuilder {
         self.edges.push(PointEdges::None);
         point_id
     }
+    /// Add all `points`
+    pub fn add_steiner_points(&mut self, points: Vec<Point>) {
+        self.points.extend(points);
+        self.edges.resize(self.points.len(), PointEdges::None);
+    }
 
     pub(crate) fn get_edges_mut(&mut self, point_id: PointId) -> Option<&mut PointEdges> {
         self.edges.get_mut(point_id.as_usize())
@@ -229,5 +234,13 @@ impl Points {
             .zip(self.edges.as_slice()[..self.edges.len() - 2].iter())
             .enumerate()
             .map(|(idx, (p, e))| (PointId(idx as NumType), p, *e))
+    }
+
+    pub fn points(&self) -> &[Point] {
+        &self.points
+    }
+
+    pub fn points_without_fake(&self) -> &[Point] {
+        &self.points[..self.points.len() - 2]
     }
 }
