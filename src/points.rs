@@ -17,6 +17,11 @@ impl PointId {
         self.0 as usize
     }
 
+    /// Get the inner value as u32
+    pub fn as_u32(&self) -> u32 {
+        self.0 as u32
+    }
+
     /// helper method used in the crate when I know the `PointId` is valid in `Points`
     pub(crate) fn get(&self, points: &Points) -> Point {
         unsafe { points.get_point_uncheck(*self) }
@@ -221,6 +226,15 @@ impl Points {
     /// iter all points
     pub fn iter(&self) -> impl Iterator<Item = (PointId, &Point, PointEdges)> {
         self.points
+            .iter()
+            .enumerate()
+            .map(|(idx, p)| (PointId(idx as NumType), &p.point, p.edges))
+    }
+
+    /// iter all points without fake points
+    pub fn iter_without_fake(&self) -> impl Iterator<Item = (PointId, &Point, PointEdges)> {
+        // skip the last two points, they are fake point
+        self.points.as_slice()[..self.points.len() - 2]
             .iter()
             .enumerate()
             .map(|(idx, p)| (PointId(idx as NumType), &p.point, p.edges))
