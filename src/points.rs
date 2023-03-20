@@ -231,7 +231,7 @@ impl Points {
             .map(|(idx, p)| (PointId(idx as NumType), &p.point, p.edges))
     }
 
-    /// iter all points
+    /// iter all points without fake points
     pub fn iter_without_fake(&self) -> impl Iterator<Item = (PointId, &Point, PointEdges)> {
         // skip the last two points, they are fake point
         self.points.as_slice()[..self.points.len() - 2]
