@@ -1570,12 +1570,12 @@ fn parse_polyline(polyline: Vec<Point>, points: &mut PointsBuilder) {
             match point_iter.next() {
                 Some(p2) => {
                     let edge = Edge::new(last_point, p2);
-                    points.get_point_mut(edge.q).unwrap().edges.push(edge.p);
+                    points.get_edges_mut(edge.q).unwrap().push(edge.p);
                     last_point = p2;
                 }
                 None => {
                     let edge = Edge::new(last_point, first_point);
-                    points.get_point_mut(edge.q).unwrap().edges.push(edge.p);
+                    points.get_edges_mut(edge.q).unwrap().push(edge.p);
                     break;
                 }
             }
