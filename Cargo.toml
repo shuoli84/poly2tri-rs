@@ -1,9 +1,11 @@
 [package]
 name = "poly2tri-rs"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "An idiomatic and fast Constrained Delaunay Triangulation library"
+repository = "https://github.com/shuoli84/poly2tri-rs"
 license = "MIT OR Apache-2.0"
+keywords = ["triangulation", "mesh"]
 
 [dependencies]
 thiserror = "1.0"
