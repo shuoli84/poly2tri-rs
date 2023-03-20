@@ -14,6 +14,12 @@ pub use points::PointId;
 pub use shape::{Edge, Point};
 pub use triangles::TriangleId;
 
+#[cfg(feature = "f32")]
+pub type Float = f32;
+
+#[cfg(not(feature = "f32"))]
+pub type Float = f64;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Triangle {
     pub points: [Point; 3],

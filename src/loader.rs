@@ -1,4 +1,4 @@
-use crate::{Point, SweeperBuilder};
+use crate::{Float, Point, SweeperBuilder};
 
 #[derive(thiserror::Error, Debug)]
 pub enum LoaderError {
@@ -77,8 +77,8 @@ fn parse_point(line: &str) -> Result<Option<Point>, LoaderError> {
     let mut iter = line.split_whitespace();
     let x = iter.next().unwrap();
     let y = iter.next().unwrap();
-    let x = x.parse::<f64>().unwrap();
-    let y = y.parse::<f64>().unwrap();
+    let x = x.parse::<Float>().unwrap();
+    let y = y.parse::<Float>().unwrap();
 
     Ok(Some(Point::new(x, y)))
 }

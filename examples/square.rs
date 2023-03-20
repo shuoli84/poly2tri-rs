@@ -1,12 +1,12 @@
-use poly2tri_rs::{Point, SweeperBuilder};
+use poly2tri_rs::{Float, Point, SweeperBuilder};
 use rand::Rng;
 mod utils;
 
 fn main() {
     let mut points = Vec::<Point>::new();
     for _ in 0..100 {
-        let x: f64 = rand::thread_rng().gen_range(0.0..800.);
-        let y: f64 = rand::thread_rng().gen_range(0.0..800.);
+        let x: Float = rand::thread_rng().gen_range(0.0..800.);
+        let y: Float = rand::thread_rng().gen_range(0.0..800.);
         points.push(Point::new(x, y));
     }
 

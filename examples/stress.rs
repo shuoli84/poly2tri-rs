@@ -1,6 +1,6 @@
 use std::io::{Read, Write};
 
-use poly2tri_rs::{Point, SweeperBuilder};
+use poly2tri_rs::{Float, Point, SweeperBuilder};
 use rand::Rng;
 
 fn main() {
@@ -24,8 +24,8 @@ fn test_rand() {
     } else {
         let mut points = Vec::<Point>::new();
         for _ in 0..100 {
-            let x: f64 = rand::thread_rng().gen_range(0.0..800.);
-            let y: f64 = rand::thread_rng().gen_range(0.0..800.);
+            let x: Float = rand::thread_rng().gen_range(0.0..800.);
+            let y: Float = rand::thread_rng().gen_range(0.0..800.);
             points.push(Point::new(x, y));
         }
         save_to_file(&points, file_path);
@@ -59,8 +59,8 @@ fn try_load_from_file(path: &str) -> Option<Vec<Point>> {
         let mut iter = line.split_whitespace();
         let x = iter.next().unwrap();
         let y = iter.next().unwrap();
-        let x = x.parse::<f64>().unwrap();
-        let y = y.parse::<f64>().unwrap();
+        let x = x.parse::<Float>().unwrap();
+        let y = y.parse::<Float>().unwrap();
         points.push(Point::new(x, y));
     }
     Some(points)

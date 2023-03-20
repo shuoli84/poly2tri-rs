@@ -1,14 +1,14 @@
-use poly2tri_rs::Triangle;
+use poly2tri_rs::{Float, Triangle};
 
 pub fn draw_svg(triangles: impl Iterator<Item = Triangle>, path: std::path::PathBuf) {
     use svg::Document;
     use svg::Node;
 
     // calculate view box
-    let mut x_min = f64::MAX;
-    let mut x_max = f64::MIN;
-    let mut y_min = f64::MAX;
-    let mut y_max = f64::MIN;
+    let mut x_min = Float::MAX;
+    let mut x_max = Float::MIN;
+    let mut y_min = Float::MAX;
+    let mut y_max = Float::MIN;
 
     let mut doc = Document::new().set("style", "background-color: #F5F5F5");
 
