@@ -47,7 +47,9 @@ pub trait Observer {
 /// Default dummy observer, blank impl, so all calls should be optimized out by compiler.
 impl Observer for () {}
 
-/// Sweeper Builder
+/// CDT Builder
+///
+/// PD(PointData), associated data for each point
 ///
 /// # Example
 /// ```rust
@@ -69,14 +71,13 @@ impl Observer for () {}
 ///    let cdt = builder.build();
 ///    let _triangles = cdt.triangulate();
 /// ```
-
 #[derive(Clone)]
 pub struct Builder<PD = ()> {
     points_builder: PointsBuilder,
     data: Vec<PD>,
 }
 
-impl<PD: Copy + Clone> Builder<PD> {
+impl<PD> Builder<PD> {
     /// Create a new Builder with polyline
     /// There should be only one polyline, and multiple holes and steiner points supported
     pub fn new(polyline_source: impl PointDataSource<Data = PD>) -> Self {
