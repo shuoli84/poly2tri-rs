@@ -2,7 +2,7 @@
 use clap::Parser;
 use poly2tri_rs::{
     loader::{Loader, PlainFileLoader},
-    Context, Edge, Float, Observer, Point, Sweeper, TriangleId,
+    Edge, Float, Observer, Point, Sweeper, TriangleId,
 };
 use utils::draw_svg;
 mod utils;
@@ -156,7 +156,7 @@ impl DrawObserver {
 }
 
 impl Observer for DrawObserver {
-    fn exit_point_event(&mut self, point_id: poly2tri_rs::PointId, context: &Context) {
+    fn exit_point_event(&mut self, point_id: poly2tri_rs::PointId, context: &Sweeper) {
         self.point_count += 1;
         if !self.point {
             return;
@@ -167,7 +167,7 @@ impl Observer for DrawObserver {
         self.draw(context);
     }
 
-    fn edge_event(&mut self, edge: Edge, context: &Context) {
+    fn edge_event(&mut self, edge: Edge, context: &Sweeper) {
         self.edge_count += 1;
         if !self.edge {
             return;
@@ -181,11 +181,11 @@ impl Observer for DrawObserver {
         self.draw(context);
     }
 
-    fn will_legalize(&mut self, triangle_id: TriangleId, _context: &Context) {
+    fn will_legalize(&mut self, triangle_id: TriangleId, _context: &Sweeper) {
         self.legalizing = Some(triangle_id);
     }
 
-    fn legalize_step(&mut self, _triangle_id: TriangleId, _context: &Context) {
+    fn legalize_step(&mut self, _triangle_id: TriangleId, _context: &Sweeper) {
         // do nothing for now
         self.legalized_step_count += 1;
     }
@@ -194,21 +194,21 @@ impl Observer for DrawObserver {
         &mut self,
         _triangle_id: TriangleId,
         _opposite_triangle_id: TriangleId,
-        _context: &Context,
+        _context: &Sweeper,
     ) {
         self.rotate_count += 1;
     }
 
-    fn legalized(&mut self, _triangle_id: TriangleId, _context: &Context) {
+    fn legalized(&mut self, _triangle_id: TriangleId, _context: &Sweeper) {
         self.legalizing = None;
     }
 
-    fn sweep_done(&mut self, context: &Context) {
+    fn sweep_done(&mut self, context: &Sweeper) {
         self.messages.push("sweep done".into());
         self.draw(context);
     }
 
-    fn finalized(&mut self, context: &Context) {
+    fn finalized(&mut self, context: &Sweeper) {
         self.messages.push("finalized".into());
         self.finalized = true;
         self.draw(context);
@@ -216,7 +216,7 @@ impl Observer for DrawObserver {
 }
 
 impl DrawObserver {
-    fn draw(&mut self, context: &Context) {
+    fn draw(&mut self, context: &Sweeper) {
         if self.frames.len() >= self.frame_count {
             return;
         }
@@ -434,7 +434,7 @@ impl DrawObserver {
             }
         };
 
-        let illegal_pairs = Context::illegal_triangles(context);
+        let illegal_pairs = Sweeper::illegal_triangles(context);
         for (from_tid, to_tid) in illegal_pairs {
             let from_t = from_tid.get(&context.triangles);
             let to_t = to_tid.get(&context.triangles);

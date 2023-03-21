@@ -1,17 +1,17 @@
 mod advancing_front;
-mod context;
+mod cdt;
 pub mod loader;
 mod points;
 mod shape;
 mod sweeper;
 mod triangles;
 mod utils;
-pub use sweeper::{Observer, Sweeper, SweeperBuilder};
+pub use cdt::{Builder, Observer, CDT};
 
-/// exported to enable observer
-pub use context::Context;
 pub use points::PointId;
 pub use shape::{Edge, Point};
+/// exported to enable observer
+pub use sweeper::Sweeper;
 pub use triangles::TriangleId;
 
 #[cfg(feature = "f32")]
@@ -104,7 +104,7 @@ mod tests {
 
     #[test]
     fn test_customized_point() {
-        let sweeper = SweeperBuilder::<i32>::new((
+        let sweeper = Builder::<i32>::new((
             vec![Point::new(0., 1.), Point::new(0., 2.), Point::new(0., 3.)],
             vec![30, 31, 32],
         ))

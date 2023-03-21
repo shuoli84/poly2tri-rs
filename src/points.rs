@@ -49,6 +49,7 @@ impl PointsBuilder {
         self.edges.push(PointEdges::None);
         point_id
     }
+
     /// Add all `points`
     pub fn add_steiner_points(&mut self, points: Vec<Point>) {
         self.points.extend(points);
