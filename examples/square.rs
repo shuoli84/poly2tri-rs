@@ -1,4 +1,4 @@
-use poly2tri_rs::{Float, Point, SweeperBuilder};
+use poly2tri_rs::{Builder, Float, Point};
 use rand::Rng;
 mod utils;
 
@@ -10,7 +10,7 @@ fn main() {
         points.push(Point::new(x, y));
     }
 
-    let builder = SweeperBuilder::new(vec![
+    let builder = Builder::new(vec![
         Point::new(-10., -10.),
         Point::new(810., -10.),
         Point::new(810., 810.),

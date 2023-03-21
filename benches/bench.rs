@@ -1,11 +1,11 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use poly2tri_rs::{Float, Point, SweeperBuilder};
+use poly2tri_rs::{Builder, Float, Point};
 
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("bench_100", |b| {
         let points = parse_points(include_str!("../test_data/random_100"));
         b.iter(|| {
-            let sweeper = SweeperBuilder::new(vec![
+            let sweeper = Builder::new(vec![
                 Point::new(-10., -10.),
                 Point::new(810., -10.),
                 Point::new(810., 810.),
@@ -27,7 +27,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("bench_bird", |b| {
         let points = parse_points(include_str!("../test_data/bird.dat"));
         b.iter(|| {
-            let sweeper = SweeperBuilder::new(points.clone()).build();
+            let sweeper = Builder::new(points.clone()).build();
             let _result = sweeper.triangulate();
         })
     });
@@ -35,7 +35,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("bench_nazca_heron", |b| {
         let points = parse_points(include_str!("../test_data/nazca_heron.dat"));
         b.iter(|| {
-            let sweeper = SweeperBuilder::new(points.clone()).build();
+            let sweeper = Builder::new(points.clone()).build();
             let _result = sweeper.triangulate();
         })
     });

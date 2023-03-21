@@ -1,6 +1,6 @@
 use std::io::{Read, Write};
 
-use poly2tri_rs::{Float, Point, SweeperBuilder};
+use poly2tri_rs::{Builder, Float, Point};
 use rand::Rng;
 
 fn main() {
@@ -31,7 +31,7 @@ fn test_rand() {
         save_to_file(&points, file_path);
         points
     };
-    let sweeper = SweeperBuilder::new(vec![
+    let sweeper = Builder::new(vec![
         Point::new(-10., -10.),
         Point::new(810., -10.),
         Point::new(810., 810.),

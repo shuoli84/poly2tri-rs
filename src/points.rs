@@ -30,41 +30,38 @@ impl PointId {
 
 #[derive(Clone, Default)]
 pub struct PointsBuilder {
-    points: Vec<PointWithEdge>,
+    points: Vec<Point>,
+    edges: Vec<PointEdges>,
 }
 
 impl PointsBuilder {
     pub fn with_capacity(cap: usize) -> Self {
         Self {
             points: Vec::with_capacity(cap),
+            edges: Vec::with_capacity(cap),
         }
     }
 
     /// Add a point
     pub fn add_steiner_point(&mut self, point: Point) -> PointId {
         let point_id = PointId(self.points.len() as NumType);
-        self.points.push(PointWithEdge {
-            point,
-            edges: PointEdges::None,
-        });
+        self.points.push(point);
+        self.edges.push(PointEdges::None);
         point_id
     }
 
     /// Add all `points`
-    pub fn add_steiner_points(&mut self, points: impl IntoIterator<Item = Point>) {
-        self.points
-            .extend(points.into_iter().map(|p| PointWithEdge {
-                point: p,
-                edges: PointEdges::None,
-            }));
+    pub fn add_steiner_points(&mut self, points: Vec<Point>) {
+        self.points.extend(points);
+        self.edges.resize(self.points.len(), PointEdges::None);
     }
 
-    pub(crate) fn get_point_mut(&mut self, point_id: PointId) -> Option<&mut PointWithEdge> {
-        self.points.get_mut(point_id.as_usize())
+    pub(crate) fn get_edges_mut(&mut self, point_id: PointId) -> Option<&mut PointEdges> {
+        self.edges.get_mut(point_id.as_usize())
     }
 
     pub fn build(self) -> Points {
-        Points::new(self.points)
+        Points::new(self.points, self.edges)
     }
 }
 
@@ -115,14 +112,15 @@ impl Iterator for PointEdges {
 /// Point store
 #[derive(Clone)]
 pub struct Points {
-    points: Vec<PointWithEdge>,
+    points: Vec<Point>,
+    edges: Vec<PointEdges>,
     y_sorted: Vec<PointId>,
     pub head: PointId,
     pub tail: PointId,
 }
 
 impl Points {
-    pub fn new(mut points: Vec<PointWithEdge>) -> Self {
+    pub fn new(mut points: Vec<Point>, mut edges: Vec<PointEdges>) -> Self {
         let mut xmax = Float::MIN;
         let mut xmin = Float::MAX;
         let mut ymax = Float::MIN;
@@ -132,11 +130,11 @@ impl Points {
             .iter()
             .enumerate()
             .map(|(idx, p)| {
-                xmax = xmax.max(p.point.x);
-                xmin = xmin.min(p.point.x);
-                ymax = ymax.max(p.point.y);
-                ymin = ymin.min(p.point.y);
-                (PointId(idx as NumType), p.point)
+                xmax = xmax.max(p.x);
+                xmin = xmin.min(p.x);
+                ymax = ymax.max(p.y);
+                ymin = ymin.min(p.y);
+                (PointId(idx as NumType), p)
             })
             .collect::<Vec<_>>();
 
@@ -168,22 +166,20 @@ impl Points {
 
             let head = Point::new(xmin - dx, ymin - dy);
             let head_id = PointId(points.len() as NumType);
-            points.push(PointWithEdge {
-                point: head,
-                edges: PointEdges::None,
-            });
+            points.push(head);
+            edges.push(PointEdges::None);
 
             let tail = Point::new(xmax + dx, ymin - dy);
             let tail_id = PointId(points.len() as NumType);
-            points.push(PointWithEdge {
-                point: tail,
-                edges: PointEdges::None,
-            });
+            points.push(tail);
+            edges.push(PointEdges::None);
+
             (head_id, tail_id)
         };
 
         Self {
             points,
+            edges,
             y_sorted: sorted_ids,
             head,
             tail,
@@ -196,15 +192,12 @@ impl Points {
 
     /// get point for id
     pub fn get_point(&self, point_id: PointId) -> Option<Point> {
-        self.points
-            .get(point_id.as_usize())
-            .map(|p| &p.point)
-            .cloned()
+        self.points.get(point_id.as_usize()).cloned()
     }
 
     /// get point for id
     pub unsafe fn get_point_uncheck(&self, point_id: PointId) -> Point {
-        unsafe { self.points.get_unchecked(point_id.as_usize()).point }
+        unsafe { *self.points.get_unchecked(point_id.as_usize()) }
     }
 
     pub fn iter_point_by_y<'a>(
@@ -213,7 +206,9 @@ impl Points {
     ) -> impl Iterator<Item = (PointId, Point, PointEdges)> + 'a {
         self.y_sorted.iter().skip(order).map(|id| {
             let point = unsafe { self.points.get_unchecked(id.as_usize()).clone() };
-            (*id, point.point, point.edges)
+            let edges = unsafe { self.edges.get_unchecked(id.as_usize()).clone() };
+
+            (*id, point, edges)
         })
     }
 
@@ -227,8 +222,9 @@ impl Points {
     pub fn iter(&self) -> impl Iterator<Item = (PointId, &Point, PointEdges)> {
         self.points
             .iter()
+            .zip(self.edges.iter())
             .enumerate()
-            .map(|(idx, p)| (PointId(idx as NumType), &p.point, p.edges))
+            .map(|(idx, (p, e))| (PointId(idx as NumType), p, *e))
     }
 
     /// iter all points without fake points
@@ -236,7 +232,16 @@ impl Points {
         // skip the last two points, they are fake point
         self.points.as_slice()[..self.points.len() - 2]
             .iter()
+            .zip(self.edges.as_slice()[..self.edges.len() - 2].iter())
             .enumerate()
-            .map(|(idx, p)| (PointId(idx as NumType), &p.point, p.edges))
+            .map(|(idx, (p, e))| (PointId(idx as NumType), p, *e))
+    }
+
+    pub fn points(&self) -> &[Point] {
+        &self.points
+    }
+
+    pub fn points_without_fake(&self) -> &[Point] {
+        &self.points[..self.points.len() - 2]
     }
 }

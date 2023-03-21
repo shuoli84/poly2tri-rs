@@ -1,4 +1,4 @@
-use crate::{Float, Point, SweeperBuilder};
+use crate::{Builder, Float, Point};
 
 #[derive(thiserror::Error, Debug)]
 pub enum LoaderError {
@@ -11,7 +11,7 @@ pub enum LoaderError {
 /// Loader loads source to a [`Sweeper`].
 /// e.g: PlainFileLoader load from file path with same format defined by original 'poly2tri' project
 pub trait Loader {
-    fn load(&mut self, source: &str) -> Result<SweeperBuilder, LoaderError>;
+    fn load(&mut self, source: &str) -> Result<Builder, LoaderError>;
 }
 
 /// Loaders can load data from file
@@ -27,7 +27,7 @@ enum ParseState {
 }
 
 impl Loader for PlainFileLoader {
-    fn load(&mut self, path: &str) -> Result<SweeperBuilder, LoaderError> {
+    fn load(&mut self, path: &str) -> Result<Builder, LoaderError> {
         let mut f = std::fs::File::options().read(true).open(path)?;
         let mut value = "".to_string();
         std::io::Read::read_to_string(&mut f, &mut value).unwrap();
@@ -64,7 +64,7 @@ impl Loader for PlainFileLoader {
             }
         }
 
-        Ok(SweeperBuilder::new(polygon)
+        Ok(Builder::new(polygon)
             .add_holes(holes)
             .add_steiner_points(steiner_points))
     }
