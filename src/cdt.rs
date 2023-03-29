@@ -333,21 +333,6 @@ mod tests {
         }
 
         fn finalized(&mut self, context: &Sweeper) {
-            let hit = context
-                .advancing_front
-                .hit_count
-                .load(std::sync::atomic::Ordering::Relaxed);
-            let miss = context
-                .advancing_front
-                .miss_count
-                .load(std::sync::atomic::Ordering::Relaxed);
-            println!(
-                "af cache hit: {}/{} rate: {:.2}%",
-                hit,
-                hit + miss,
-                hit as f64 / (hit + miss) as f64 * 100.
-            );
-
             println!(
                 "points: {} triangle: {}",
                 context.points.len(),
@@ -357,8 +342,6 @@ mod tests {
                 "legalize: {} steps: {} rotate: {}",
                 self.legalize_count, self.legalize_step_count, self.rotate_count
             );
-            self.hit_count = hit;
-            self.mis_count = miss;
         }
     }
 
@@ -373,7 +356,6 @@ mod tests {
             .triangulate_with_observer(&mut cache_hit)
             .collect::<Vec<_>>();
         assert_eq!(triangles.len(), 273);
-        assert!(cache_hit.hit_rate() > 0.63);
         assert!(cache_hit.rotate_count == 272);
     }
 
@@ -402,7 +384,6 @@ mod tests {
             .triangulate_with_observer(&mut cache_hit)
             .collect::<Vec<_>>();
         assert_eq!(triangles.len(), 1034);
-        assert!(cache_hit.hit_rate() > 0.71);
         assert!(cache_hit.rotate_count == 671);
     }
 
