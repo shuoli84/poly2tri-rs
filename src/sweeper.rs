@@ -365,16 +365,12 @@ impl Sweeper<'_> {
 
         // update prev_node's triangle to newly created and delete the node.
         // node is covered by new triangle.
-        // safety: prev_node and node is valid till this point, advanceing_front can not changed
-        //       under the hood, so the index is still valid
-        unsafe {
-            self.advancing_front.update_and_delete_by_index(
-                prev_node.index(),
-                prev_node.point_id(),
-                new_triangle,
-                node.index(),
-            )
-        };
+        self.advancing_front.update_and_delete_by_index(
+            prev_node.point(),
+            prev_node.point_id(),
+            new_triangle,
+            node.point(),
+        );
 
         // legalize works on existing triangles, no new triangle will be created
         // that ganrentees next point won't change

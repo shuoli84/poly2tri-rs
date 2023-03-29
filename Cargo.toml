@@ -9,7 +9,8 @@ keywords = ["triangulation", "mesh"]
 
 [dependencies]
 thiserror = "1.0"
-robust = "0.2.3"
+robust = "1.0"
+sweep-bptree = { path = "/Users/shuoli/developer/pr/sweep-bptree" }
 
 [dev-dependencies]
 rand = "0.8"

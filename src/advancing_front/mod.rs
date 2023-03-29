@@ -11,7 +11,7 @@ pub use vec_backed::AdvancingFront;
 pub struct NodeId {
     point_id: PointId,
     point: Point,
-    index_hint: usize,
+    cursor: vec_backed::CursorAF,
 }
 
 impl NodeId {
@@ -32,9 +32,8 @@ pub struct NodeRef<'a> {
     point: Point,
     /// last node's triangle is None
     pub triangle: Option<TriangleId>,
-    /// current index, used to optimize retrieve prev, next etc
-    index: usize,
 
+    cursor: vec_backed::CursorAF,
     advancing_front: &'a AdvancingFront,
 }
 
@@ -55,16 +54,12 @@ impl<'a> NodeRef<'a> {
         self.advancing_front.prev_node(self)
     }
 
-    pub(crate) fn index(&self) -> usize {
-        self.index
-    }
-
     /// convert to a owned version of NodeId
     pub fn get_node_id(&self) -> NodeId {
         NodeId {
             point_id: self.point_id,
             point: self.point,
-            index_hint: self.index,
+            cursor: self.cursor,
         }
     }
 }
